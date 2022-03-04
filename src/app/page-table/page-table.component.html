@@ -1,0 +1,25 @@
+<div class="page-wrapper">
+    <div class="dropzone-wrapper">
+        <p>Выберите файл для загрузки</p>
+        <input type="file" multiple="false" accept="{{inputAccept}}" (change)="incomingfile($event)"/>
+    </div>
+    <p class="dropzone-validation">{{error}}</p>
+</div>
+
+<table mat-table class="table-wrapper">
+  <thead #header>
+    <tr>
+      <th *ngFor="let headValue of data[0]; let i = index">
+        {{i}}
+      </th>
+    </tr>
+  </thead>
+  <tbody #container>
+    <tr *ngFor="let row of data; let i = index">
+      <td>{{i}}</td>
+      <td *ngFor="let val of row; let i = index">
+        {{row[i] || ' '}}
+      </td>
+    </tr>
+  </tbody>
+</table>
