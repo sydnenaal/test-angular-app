@@ -1,25 +1,18 @@
 <div class="page-wrapper">
     <div class="dropzone-wrapper">
+        <mat-icon aria-hidden="false" aria-label="Example home icon">upload</mat-icon>
         <p>Выберите файл для загрузки</p>
         <input type="file" multiple="false" accept="{{inputAccept}}" (change)="incomingfile($event)"/>
     </div>
     <p class="dropzone-validation">{{error}}</p>
 </div>
 
-<table mat-table class="table-wrapper">
-  <thead #header>
-    <tr>
-      <th *ngFor="let headValue of data[0]; let i = index">
-        {{i}}
-      </th>
-    </tr>
-  </thead>
-  <tbody #container>
-    <tr *ngFor="let row of data; let i = index">
-      <td>{{i}}</td>
-      <td *ngFor="let val of row; let i = index">
-        {{row[i] || ' '}}
-      </td>
-    </tr>
-  </tbody>
+<table mat-table [dataSource]="dataSource" matSort (matSortChange)="announceSortChange()" class="mat-elevation-z8">
+  <ng-container  *ngFor="let key of displayedColumns" matColumnDef="{{key}}">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>{{key}}</th>
+    <td mat-cell *matCellDef="let element"> {{element[key]}} </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 </table>

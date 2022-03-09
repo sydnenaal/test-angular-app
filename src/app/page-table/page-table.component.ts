@@ -1,60 +1,53 @@
-import { Component, OnInit } from '@angular/core'
-import * as XLSX from 'xlsx'
+import { Component, ViewChild, AfterViewInit } from '@angular/core'
+
+import { MatSort } from '@angular/material/sort'
+import { MatTableDataSource } from '@angular/material/table'
+
+import { XSLXFileService } from '../services'
+
+import type { XLSXRowData } from '../services/xlsx-file'
 
 @Component({
   selector: 'app-page-table',
   templateUrl: './page-table.component.html',
   styleUrls: ['./page-table.component.scss'],
+  providers: [XSLXFileService],
 })
-export class PageTableComponent implements OnInit {
-  constructor() {}
+export class PageTableComponent implements AfterViewInit {
+  constructor(private XLSXfileService: XSLXFileService) {}
 
-  data: any
+  @ViewChild(MatSort, { static: false })
+  sort!: MatSort
 
   error: string = ''
   inputAccept: string = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
+  displayedColumns: string[] = []
+  dataSource = new MatTableDataSource<XLSXRowData>([])
+
+  setTableData = (data: XLSXRowData[]) => (this.dataSource = new MatTableDataSource<XLSXRowData>(data))
+
+  setTableColumns = (columns: string[]) => (this.displayedColumns = columns)
+
+  announceSortChange() {
+    this.dataSource.sort = this.sort
+  }
+
   incomingfile(event: any) {
     const target: DataTransfer = <DataTransfer>event.target
-    const reader: FileReader = new FileReader()
 
-    if (target.files.length > 1) {
-      this.error = 'Выберите только один файл'
-      return
-    }
+    if (target.files.length > 1) this.error = 'Выберите только один файл'
+    if (!target.files[0].name.endsWith('.xlsx')) this.error = 'Невалидный тип файла'
 
-    if (!target.files[0].name.endsWith('.xlsx')) {
-      this.error = 'Невалидный тип файла'
-      return
-    }
+    if (this.error) return
 
-    reader.onload = (e: any) => {
-      const bstr: string = e.target.result
-      const wb: XLSX.WorkBook = XLSX.read(bstr, { type: 'binary' })
-
-      const wsname: string = wb.SheetNames[0]
-      const ws: XLSX.WorkSheet = wb.Sheets[wsname]
-
-      this.data = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, range: 10 })
-
-      const ws2: XLSX.WorkSheet = wb.Sheets[wb.SheetNames[1]]
-
-      this.readDataSheet(ws2, 10)
-    }
-
-    reader.readAsBinaryString(target.files[0])
+    this.XLSXfileService.parseFile(target.files[0], {
+      setData: this.setTableData,
+      setColumns: this.setTableColumns,
+    })
   }
 
-  private readDataSheet(ws: XLSX.WorkSheet, startRow: number) {
-    let datas = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, range: startRow })
-    datas = datas.slice(1)
-
-    for (let i = 0; i < this.data.length; i++) {
-      this.data[i][this.data[0].length] = datas.filter((x: any) => x[12] == this.data[i][0])
-    }
-
-    console.log(this.data)
+  ngAfterViewInit(): void {
+    this.dataSource.sort = this.sort
   }
-
-  ngOnInit(): void {}
 }
