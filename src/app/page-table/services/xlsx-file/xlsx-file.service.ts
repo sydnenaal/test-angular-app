@@ -15,8 +15,6 @@ const fileParseOptions: XLSX.Sheet2JSONOpts = { header: 'A', raw: true, range: 1
 
 @Injectable({ providedIn: 'root' })
 export class XSLXFileService {
-  constructor() {}
-
   parseFile(file: File, { setData, setColumns }: ParseFileSettersCB) {
     const reader: FileReader = new FileReader()
 

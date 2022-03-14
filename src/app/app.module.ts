@@ -8,7 +8,9 @@ import { PageTableComponent } from './page-table/page-table.component'
 
 import { MatIconModule } from '@angular/material/icon'
 import { MatTableModule } from '@angular/material/table'
+import { MatPaginatorModule } from '@angular/material/paginator'
 import { MatSortModule } from '@angular/material/sort'
+import { MatInputModule } from '@angular/material/input'
 
 @NgModule({
   declarations: [AppComponent, PageTableComponent],
@@ -18,7 +20,9 @@ import { MatSortModule } from '@angular/material/sort'
     BrowserAnimationsModule,
     MatIconModule,
     MatTableModule,
+    MatPaginatorModule,
     MatSortModule,
+    MatInputModule,
   ],
   providers: [],
   bootstrap: [AppComponent],

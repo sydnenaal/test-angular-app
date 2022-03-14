@@ -1,11 +1,12 @@
 import { Component, ViewChild, AfterViewInit } from '@angular/core'
 
 import { MatSort } from '@angular/material/sort'
+import { MatPaginator } from '@angular/material/paginator'
 import { MatTableDataSource } from '@angular/material/table'
 
-import { XSLXFileService } from '../services'
+import { XSLXFileService, LogicFilterService } from './services'
 
-import type { XLSXRowData } from '../services/xlsx-file'
+import type { XLSXRowData } from './services/xlsx-file'
 
 @Component({
   selector: 'app-page-table',
@@ -14,23 +15,52 @@ import type { XLSXRowData } from '../services/xlsx-file'
   providers: [XSLXFileService],
 })
 export class PageTableComponent implements AfterViewInit {
-  constructor(private XLSXfileService: XSLXFileService) {}
+  constructor(private XLSXfileService: XSLXFileService, private LogicFilterService: LogicFilterService) {}
 
-  @ViewChild(MatSort, { static: false })
-  sort!: MatSort
+  @ViewChild(MatPaginator) paginator!: MatPaginator
+  @ViewChild(MatSort) sort!: MatSort
 
   error: string = ''
   inputAccept: string = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
+  // TODO: Find better solution
+  cache: any = []
+
   displayedColumns: string[] = []
   dataSource = new MatTableDataSource<XLSXRowData>([])
 
-  setTableData = (data: XLSXRowData[]) => (this.dataSource = new MatTableDataSource<XLSXRowData>(data))
+  setTableData = (data: XLSXRowData[]) => {
+    this.dataSource = new MatTableDataSource<XLSXRowData>(data)
+
+    // TODO: find better solution
+    // Set pagination by next macro task
+    this.cache = data
+    setTimeout(() => (this.dataSource.paginator = this.paginator), 0)
+  }
 
   setTableColumns = (columns: string[]) => (this.displayedColumns = columns)
 
   announceSortChange() {
     this.dataSource.sort = this.sort
+    this.dataSource.paginator = this.paginator
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value
+
+    if (!filterValue) {
+      this.dataSource = new MatTableDataSource<XLSXRowData>(this.cache)
+      return
+    }
+
+    const cond = this.LogicFilterService.parseInputCondition(filterValue)
+    const newData = this.cache.filter((item: any) => this.LogicFilterService.isCondEqual(item, cond))
+
+    this.dataSource = new MatTableDataSource<XLSXRowData>(newData)
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage()
+    }
   }
 
   incomingfile(event: any) {
@@ -48,6 +78,7 @@ export class PageTableComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator
     this.dataSource.sort = this.sort
   }
 }
